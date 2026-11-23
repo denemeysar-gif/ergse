@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ertu Fiyat Listesi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="girisEkrani" class="login-overlay">
+    <div class="login-box">
+        <h2>Fiyat Listesi Girişi</h2>
+        <p>Kullanıcı seçip şifrenizi girin</p>
+        <div class="login-field">
+            <label for="girisKullaniciSec">Kullanıcı</label>
+            <select id="girisKullaniciSec" onchange="document.getElementById('girisHata').innerText=''"></select>
+        </div>
+        <div class="login-field">
+            <label for="girisSifreInput">Şifre</label>
+            <input type="password" id="girisSifreInput" placeholder="Şifrenizi yazın" onkeyup="if(event.key==='Enter') girisYap()">
+        </div>
+        <button class="btn-login" onclick="girisYap()">Giriş Yap</button>
+        <div id="girisHata" class="login-err"></div>
+    </div>
+</div>
+
+<div id="anaEkran" class="container">
+    <div class="top-bar">
+        <div class="top-left">
+            <h2>Fiyat Listesi</h2>
+            <span id="aktifKullaniciEtiket" class="active-user-tag"></span>
+        </div>
+        <div class="user-controls">
+            <button class="btn-admin" id="btnYonetim" onclick="yonetimPaneliAcKapat()">Yönetim</button>
+            <button class="btn-logout" onclick="cikisYap()">Çıkış</button>
+        </div>
+    </div>
+
+    <div id="yonetimPaneli" class="admin-panel">
+        <div class="admin-section">
+            <h3>1. Kullanıcı, Şifre & Fiyat Yetkisi</h3>
+            <div class="form-grid">
+                <div class="form-group"><label>Kullanıcı Adı</label><input type="text" id="yeniKullaniciAdi" placeholder="Örn: Plasiyer"></div>
+                <div class="form-group"><label>Giriş Şifresi *</label><input type="text" id="yeniKullaniciSifre" placeholder="Örn: 5678"></div>
+                <div class="form-group">
+                    <label>Yönetim Şifresi Değiştir</label>
+                    <div style="display:flex; gap:4px;">
+                        <input type="text" id="yeniAdminSifre" placeholder="Mevcut: 1234" style="flex:1; min-width:0;">
+                        <button class="btn-gray" onclick="sifreGuncelle()">Kaydet</button>
+                    </div>
+                </div>
+            </div>
+            <div class="perm-checks">
+                <strong>Yetkiler:</strong>
+                <label><input type="checkbox" id="yetki_alis"> Alış</label>
+                <label><input type="checkbox" id="yetki_f1" checked> Satış 1</label>
+                <label><input type="checkbox" id="yetki_f2"> Satış 2</label>
+                <label><input type="checkbox" id="yetki_f3"> Satış 3</label>
+                <label><input type="checkbox" id="yetki_f4"> Satış 4</label>
+                <button class="btn-primary" onclick="kullaniciKaydet()">+ Kaydet</button>
+            </div>
+            <div id="kullaniciListesi" class="user-list"></div>
+        </div>
+
+        <div class="admin-section">
+            <h3>2. Yeni Ürün Ekle & Toplu İşlemler</h3>
+            <div class="form-grid">
+                <div class="form-group"><label>Stok Kodu</label><input type="text" id="stokKodu" placeholder="STK-001"></div>
+                <div class="form-group"><label>Barkod</label><input type="text" id="barkod" placeholder="869..."></div>
+                <div class="form-group"><label>Ürün İsmi *</label><input type="text" id="urunIsmi" placeholder="Ürün adı"></div>
+                <div class="form-group"><label>Açıklama</label><input type="text" id="urunAciklama" placeholder="Detay"></div>
+                <div class="form-group"><label>Alış</label><input type="number" id="alisFiyat" step="0.01" placeholder="0.00"></div>
+                <div class="form-group"><label>Satış 1</label><input type="number" id="satisFiyat1" step="0.01" placeholder="0.00"></div>
+                <div class="form-group"><label>Satış 2</label><input type="number" id="satisFiyat2" step="0.01" placeholder="0.00"></div>
+                <div class="form-group"><label>Satış 3</label><input type="number" id="satisFiyat3" step="0.01" placeholder="0.00"></div>
+                <div class="form-group"><label>Satış 4</label><input type="number" id="satisFiyat4" step="0.01" placeholder="0.00"></div>
+            </div>
+            <div class="btn-toolbar">
+                <button class="btn-primary" onclick="urunEkle()">+ Ürün Ekle</button>
+                <button class="btn-teal" onclick="document.getElementById('excelDosya').click()">Excel Yükle (CSV)</button>
+                <input type="file" id="excelDosya" accept=".csv,.txt" style="display:none;" onchange="exceldenYukle(event)">
+                <button class="btn-gray" onclick="sablonIndir()">CSV Şablon</button>
+                <button class="btn-success" onclick="excelAktar()">Excel İndir</button>
+                <button class="btn-info" onclick="verileriYedekle()">JSON Yedekle</button>
+                <button class="btn-warn" onclick="document.getElementById('yedekDosya').click()">JSON Yükle</button>
+                <input type="file" id="yedekDosya" accept=".json" style="display:none;" onchange="verileriGeriYukle(event)">
+                <button class="btn-danger" onclick="listeyiTemizle()">Tümünü Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-area">
+        <input type="text" id="aramaKutusu" placeholder="Ürün ismi, stok kodu veya barkod ara..." onkeyup="tabloyuGuncelle()">
+        <button class="btn-gray" onclick="aramayiTemizle()">Temizle</button>
+        <span class="count-pill" id="urunSayaci">0</span>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th class="desktop-col">Stok Kodu</th>
+                    <th class="desktop-col">Barkod</th>
+                    <th>Ürün İsmi</th>
+                    <th class="desktop-col">Açıklama</th>
+                    <th class="text-right desktop-col" id="th_alis">Alış</th>
+                    <th class="text-right desktop-col" id="th_f1">Satış 1</th>
+                    <th class="text-right desktop-col" id="th_f2">Satış 2</th>
+                    <th class="text-right desktop-col" id="th_f3">Satış 3</th>
+                    <th class="text-right desktop-col" id="th_f4">Satış 4</th>
+                    <th class="text-right desktop-col col-action" id="th_islem">Sil</th>
+                </tr>
+            </thead>
+            <tbody id="urunListesiGovde"></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
